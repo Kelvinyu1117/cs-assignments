@@ -7,4 +7,6 @@ The simple command prompt C++ program for running the external executable in a m
 # Compile and Execute
 The following command builds all the .cpp files and execute the main
 
-`./run.sh`
+```
+./run.sh
+```
