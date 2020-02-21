@@ -1,4 +1,4 @@
-# background-runner
+# Background Runner
 The simple command prompt C++ program for running the external executable in a multi-processing way
 
 
