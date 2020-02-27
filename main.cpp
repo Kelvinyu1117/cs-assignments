@@ -33,9 +33,18 @@ void bgCreate(char *fileArgs[])
     pb.pid = fork();
     if (pb.pid == 0)
     { // child
+        if (numsOfRunningProcess >= 3)
+        {
+            int res = kill(getpid(), SIGSTOP);
+
+            if (res)
+                exit(EXIT_FAILURE);
+        }
+
         if (execvp(fileArgs[0], fileArgs) < 0)
         {
             cout << "execvp is failed for process." << endl;
+            exit(EXIT_FAILURE);
         }
     }
     else if (pb.pid < 0) // error
@@ -46,27 +55,15 @@ void bgCreate(char *fileArgs[])
 
     if (numsOfRunningProcess >= 3) // pid > 0 -> parent
     {
-        int res = kill(pb.pid, SIGSTOP);
-
-        if (!res)
-        {
-            pb.state = 1;
-            numsOfStoppedProcess++;
-
-            processList.push_back(pb);
-        }
-        else
-        {
-            exit(EXIT_FAILURE);
-        }
+        pb.state = 1;
+        numsOfStoppedProcess++;
     }
     else
     {
         pb.state = 0;
         numsOfRunningProcess++;
-
-        processList.push_back(pb);
     }
+    processList.push_back(pb);
 }
 
 void checkProcessStatus()
@@ -91,7 +88,7 @@ void checkProcessStatus()
             if (pb.state == 1)
             {
                 pb.state = 0;
-                cout << pb.pid << " is automatically restarted" << endl;
+                cout << pb.pid << " automatically restarted" << endl;
                 kill(pb.pid, SIGCONT);
                 numsOfRunningProcess++;
             }
@@ -135,15 +132,26 @@ void bgStop(pid_t pid)
 
     if (!res)
     {
-        it->state = 1;
-        numsOfStoppedProcess++;
-        numsOfRunningProcess--;
-        
-        cout << it->pid << " is stopped" << endl;
+        if (it->state == -1)
+        {
+            cout << it->pid << " already terminated" << endl;
+        }
+        else if (it->state != 1)
+        {
+            it->state = 1;
+            numsOfStoppedProcess++;
+            numsOfRunningProcess--;
 
-        ProcessBlock pb = *it;
-        processList.erase(it);
-        processList.push_back(pb);
+            cout << it->pid << " stopped" << endl;
+
+            ProcessBlock pb = *it;
+            processList.erase(it);
+            processList.push_back(pb);
+        }
+        else if (it->state == 1)
+        {
+            cout << it->pid << " already stopped" << endl;
+        }
     }
     else
     {
@@ -153,20 +161,37 @@ void bgStop(pid_t pid)
 
 void bgKill(pid_t pid)
 {
+    bool isfound = false;
     list<ProcessBlock>::iterator it2 = processList.begin();
     for (; it2 != processList.end(); ++it2)
     {
         if (it2->pid == pid)
+        {
+            isfound = true;
             break;
+        }
     }
-
-    int res = kill(pid, SIGSTOP);
-    if (!res)
+    if (isfound)
     {
-        it2->state = -1;
-        numsOfStoppedProcess++;
-        numsOfRunningProcess--;
-        cout << it2->pid << " skilled" << endl;
+        int res = kill(pid, SIGSTOP);
+        if (!res)
+        {
+            if (it2->state != -1)
+            {
+                it2->state = -1;
+                numsOfStoppedProcess++;
+                numsOfRunningProcess--;
+                cout << it2->pid << " killed" << endl;
+            }
+            else
+            {
+                cout << it2->pid << " already terminated" << endl;
+            }
+        }
+    }
+    else
+    {
+        cout << pid << " does not exist" << endl;
     }
 }
 
@@ -220,7 +245,11 @@ int main()
 
             if (!strcmp(command, "bg"))
             {
-                string fileName = "./";
+                string fileName = "";
+                
+                if(fileArgs[0][0] != '.' && fileArgs[0][1] != '/')
+                    fileName = "./";
+
                 fileName += fileArgs[0];
                 fileArgs[0] = (char *)fileName.c_str();
 
