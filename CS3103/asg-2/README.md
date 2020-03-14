@@ -3,7 +3,8 @@
 ## Compile and run
 Execute the following command:
 ```
-    g++ generate_frame_vector.cpp main.cpp -lpthread -o main
-    ./main 2
+g++ generate_frame_vector.cpp main.cpp -lpthread -o main
+
+./main <interval>
 ```
 Or execute the bash script ```run.sh```, with interval = 2 in default
