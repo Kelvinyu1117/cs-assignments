@@ -24,8 +24,7 @@ struct ConcurrentQueue
    
     void push(double *data)
     {
-        while (is_full())
-            ;
+        if(is_full()) return;
 
         int s = pthread_mutex_lock(&mtx);
         if (is_empty())
@@ -45,6 +44,8 @@ struct ConcurrentQueue
 
     void pop()
     {
+        if(is_empty()) return;
+        
         int s = pthread_mutex_lock(&mtx);
 
         if (head == tail)
