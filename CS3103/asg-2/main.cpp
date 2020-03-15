@@ -45,7 +45,7 @@ struct ConcurrentQueue
     void pop()
     {
         if(is_empty()) return;
-        
+
         int s = pthread_mutex_lock(&mtx);
 
         if (head == tail)
@@ -79,47 +79,10 @@ struct ConcurrentQueue
     {
         return size == capacity;
     }
-
-    void print_queue()
-    {
-        cout << "Current Item in Queue: "
-             << "size = " << size << endl;
-        cout << "-------------------------" << endl;
-
-        for (int i = 0, j = head; i < size; i++)
-        {
-            cout << arr[j] << " ";
-            j = (j + 1) % size;
-        }
-        cout << endl
-             << "-------------------------" << endl;
-    }
 };
 
 ConcurrentQueue cache;
 static pthread_mutex_t cnt_mtx = PTHREAD_MUTEX_INITIALIZER; // for locking cnt when the quantizer update the cnt
-
-void print_frame_vector(double *vec, int l)
-{
-    for (int i = 0; i < l; i++)
-    {
-
-        cout << vec[i] << "     ";
-    }
-    cout << endl;
-}
-
-void test_gen_vector()
-{
-    int l = M * N;
-    double *v;
-    do
-    {
-        v = generate_frame_vector(l);
-        if (v)
-            print_frame_vector(v, l);
-    } while (v);
-}
 
 void *camera(void *args)
 {
