@@ -82,7 +82,6 @@ struct ConcurrentQueue
 };
 
 ConcurrentQueue cache;
-static pthread_mutex_t cnt_mtx = PTHREAD_MUTEX_INITIALIZER; // for locking cnt when the quantizer update the cnt
 
 void *camera(void *args)
 {
