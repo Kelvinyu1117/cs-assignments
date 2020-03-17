@@ -14,10 +14,10 @@ struct ConcurrentQueue
 {
     double *arr[5];
 
-    unsigned head;
-    unsigned tail;
-    unsigned size;
-    unsigned capacity;
+    int head;
+    int tail;
+    int size;
+    int capacity;
     pthread_mutex_t mtx;
 
     ConcurrentQueue() : head(-1), tail(-1), size(0), capacity(5) {}
@@ -29,7 +29,7 @@ struct ConcurrentQueue
         int s = pthread_mutex_lock(&mtx);
         if (is_empty())
             head = 0;
-            
+
         tail = (tail + 1) % capacity;
         arr[tail] = data;
         size++;
