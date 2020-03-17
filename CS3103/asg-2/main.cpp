@@ -29,13 +29,7 @@ struct ConcurrentQueue
         int s = pthread_mutex_lock(&mtx);
         if (is_empty())
             head = 0;
-
-        for (int i = 0; i < M*N; i++)
-        {
-            cout << data[i] << " ";
-        }
-
-        cout << endl;
+            
         tail = (tail + 1) % capacity;
         arr[tail] = data;
         size++;
