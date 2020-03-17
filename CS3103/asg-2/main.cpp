@@ -6,8 +6,8 @@
 using namespace std;
 #define M 4
 #define N 2
-
 #define NUM_QUANTIZER 2
+
 double *generate_frame_vector(int l);
 
 struct ConcurrentQueue
