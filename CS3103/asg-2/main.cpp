@@ -13,16 +13,16 @@ double *generate_frame_vector(int l);
 
 struct ConcurrentQueue
 {
-    double *arr[5];
-
-    int head;
-    int tail;
-    int size;
-    int capacity;
+    double *arr[5]; // circular array with double* type
+    int head; // points to the first element of the queue
+    int tail; // points to the last element of the queue
+    int size; // number of current item
+    int capacity; // actual physical size of the queue
     pthread_mutex_t mtx;
 
     ConcurrentQueue() : head(-1), tail(-1), size(0), capacity(5) {}
 
+    // push the data onto the queue, thread-safe operation
     void push(double *data)
     {
         if (is_full())
@@ -48,6 +48,7 @@ struct ConcurrentQueue
         s = pthread_mutex_unlock(&mtx);
     }
 
+    // pop the data out of the queue, thread-safe operation
     void pop()
     {
         if (is_empty())
@@ -69,6 +70,7 @@ struct ConcurrentQueue
         s = pthread_mutex_unlock(&mtx);
     }
 
+    // get the first item from the queue
     double *front()
     {
         if (size == 0)
@@ -98,11 +100,11 @@ void *camera(void *args)
     int *interval = (int *)args;
     do
     {
-        if (!cache.is_full())
+        if (!cache.is_full()) // if the cache is not full
         {
             v = generate_frame_vector(l);
 
-            if (v)
+            if (v) // if v is not nullptr
             {
                 cache.push(v);
             }
@@ -126,19 +128,21 @@ void *quantizer(void *arg)
 
             int l = M * N;
 
+            // quantization
             for (int i = 0; i < l; i++)
             {
                 t[i] = (t[i] > 0.5) ? 1 : 0;
             }
 
+            // print out the result
             cout << fixed << setprecision(1);
             for (int i = 0; i < l; i++)
             {
                 cout << t[i] << " ";
             }
             cout << endl;
+            
             cnt = 0;
-
             sleep(3);
         }
         else
@@ -157,10 +161,11 @@ int main(int argc, char *argv[])
         int interval = atoi(argv[1]);
 
         int c_err, j_err;
-
+        
         pthread_t camera_thread;
         pthread_t quantizer_threads[NUM_QUANTIZER];
 
+        // thread creation
         c_err = pthread_create(&camera_thread, NULL, camera, (void *)&interval);
         if (c_err)
         {
@@ -177,7 +182,7 @@ int main(int argc, char *argv[])
                 exit(-1);
             }
         }
-
+        // wait for the thread finish
         j_err = pthread_join(camera_thread, NULL);
         if (j_err)
         {
