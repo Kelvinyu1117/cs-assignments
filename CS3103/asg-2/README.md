@@ -3,7 +3,7 @@
 ## Compile and run
 Execute the following command:
 ```
-g++ generate_frame_vector.cpp main.cpp -lpthread -o main
+g++ -std= generate_frame_vector.cpp main.cpp -lpthread -o main
 
 ./main <interval>
 ```
