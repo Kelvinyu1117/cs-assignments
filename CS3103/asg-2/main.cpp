@@ -2,6 +2,7 @@
 #include <unistd.h>
 #include <pthread.h>
 #include <time.h>
+#include <iomanip>
 
 using namespace std;
 #define M 4
@@ -21,12 +22,23 @@ struct ConcurrentQueue
     pthread_mutex_t mtx;
 
     ConcurrentQueue() : head(-1), tail(-1), size(0), capacity(5) {}
-   
+
     void push(double *data)
     {
-        if(is_full()) return;
+        if (is_full())
+            return;
 
         int s = pthread_mutex_lock(&mtx);
+
+        int l = M * N;
+        
+        cout << fixed << setprecision(1) << "C:"; 
+        for (int i = 0; i < l; i++)
+        {
+            cout << data[i] << " ";
+        }
+        cout << endl << endl;
+
         if (is_empty())
             head = 0;
 
@@ -38,7 +50,8 @@ struct ConcurrentQueue
 
     void pop()
     {
-        if(is_empty()) return;
+        if (is_empty())
+            return;
 
         int s = pthread_mutex_lock(&mtx);
 
@@ -79,6 +92,7 @@ ConcurrentQueue cache;
 
 void *camera(void *args)
 {
+    cout << "Camera thread starts" << endl;
     double *v;
     int l = M * N;
     int *interval = (int *)args;
@@ -96,6 +110,7 @@ void *camera(void *args)
 
         sleep(*interval);
     } while (v);
+    cout << "Camera thread ends" << endl;
 }
 
 void *quantizer(void *arg)
@@ -104,26 +119,30 @@ void *quantizer(void *arg)
     int cnt = 0;
     do
     {
-        if(!cache.is_empty()) {
+        if (!cache.is_empty())
+        {
             t = cache.front();
             cache.pop();
+
             int l = M * N;
+
             for (int i = 0; i < l; i++)
             {
                 t[i] = (t[i] > 0.5) ? 1 : 0;
             }
 
-            cnt = 0;
-
+            cout << fixed << setprecision(1);
             for (int i = 0; i < l; i++)
             {
                 cout << t[i] << " ";
             }
-            
             cout << endl;
-            
+            cnt = 0;
+
             sleep(3);
-        }else {
+        }
+        else
+        {
             cnt++;
             sleep(1);
         }
@@ -133,7 +152,8 @@ void *quantizer(void *arg)
 int main(int argc, char *argv[])
 {
 
-    if(argc == 2) {
+    if (argc == 2)
+    {
         int interval = atoi(argv[1]);
 
         int c_err, j_err;
@@ -175,6 +195,6 @@ int main(int argc, char *argv[])
             }
         }
     }
-    
+
     return 0;
 }
