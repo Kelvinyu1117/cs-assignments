@@ -32,13 +32,6 @@ struct ConcurrentQueue
 
         int l = M * N;
         
-        cout << fixed << setprecision(1) << "C:"; 
-        for (int i = 0; i < l; i++)
-        {
-            cout << data[i] << " ";
-        }
-        cout << endl << endl;
-
         if (is_empty())
             head = 0;
 
