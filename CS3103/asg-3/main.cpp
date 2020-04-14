@@ -19,8 +19,6 @@ struct ConcurrentQueue
     int tail; // points to the last element of the queue
     int capacity;
     int size;
-    sem_t num_of_items;
-    sem_t num_of_empty_space;
     pthread_mutex_t mtx;
     pthread_mutex_t data_mtx[5];
 
@@ -30,9 +28,6 @@ struct ConcurrentQueue
         tail = -1;
         size = 0;
         capacity = 5;
-
-        sem_init(&num_of_items, 0, 0);
-        sem_init(&num_of_empty_space, 0, 5);
     }
 
     void push(double *data)
