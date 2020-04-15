@@ -108,21 +108,12 @@ struct Record
     void compression(double *data)
     {
         int L = M * N;
-
-        for (int i = 0; i < L; i++)
-        {
-            cout << data[i] << " ";
-        }
-        cout << endl;
-
+        
         for (int i = 0; i < L; i++)
         {
             orginal[i] = data[i];
             compressed_frame[i] = round(data[i] * 10);
-            cout << compressed_frame[i] << " ";
         }
-
-        cout << endl;
     }
 
     double cal_MSE()
@@ -178,17 +169,18 @@ void *camera(void *args)
 
     } while (v);
 
-    camera_finished = true;
-
+    sem_post(&notify_start_transform);
     cout << "Camera thread ends" << endl;
 }
 
 void *transformer(void *arg)
 {
-    while (!camera_finished || camera_finished && processed_frames < produced_frames)
-    {
+    while (!camera_finished || processed_frames < produced_frames)
+    {  
+        
         sem_wait(&notify_start_transform);
         sem_wait(&notify_finish_estimate);
+
 
         double *data = cache.front();
         if(data) {
@@ -198,14 +190,19 @@ void *transformer(void *arg)
             pthread_mutex_unlock(&recorder_mtx);
 
             sem_post(&notify_start_estimate);
+
+            if(camera_finished)
+                sem_post(&notify_start_transform);
         }
+        
     }
 }
 
 void *estimator(void *arg)
 {
-    while (!camera_finished || camera_finished && processed_frames < produced_frames)
+    while (!camera_finished || processed_frames < produced_frames)
     {
+        
         sem_wait(&notify_start_estimate);
 
         pthread_mutex_lock(&recorder_mtx);
@@ -217,7 +214,6 @@ void *estimator(void *arg)
         cache.pop();
 
         sem_post(&notify_finish_estimate);
-        sem_post(&notify_start_transform);
     }
 }
 
@@ -278,14 +274,14 @@ int main(int argc, char *argv[])
     sem_init(&notify_start_transform, 0, 0);
     sem_init(&notify_start_estimate, 0, 0);
     sem_init(&notify_finish_estimate, 0, 1);
-
-    pthread_t camera_thread, transformer_thread, estimator_thread;
-    int interval = 3;
+    if (argc == 2)
+    {
+        int interval = atoi(argv[1]);
+        pthread_t camera_thread, transformer_thread, estimator_thread;
+        
+        threads_creation(camera_thread, transformer_thread, estimator_thread, interval);
+        threads_joining(camera_thread, transformer_thread, estimator_thread);
+    }
     
-    threads_creation(camera_thread, transformer_thread, estimator_thread, interval);
-    threads_joining(camera_thread, transformer_thread, estimator_thread);
-
-    
-
     return 0;
 }
