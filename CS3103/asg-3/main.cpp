@@ -160,16 +160,15 @@ void *camera(void *args)
             cache.push(v);
             produced_frames++;
             sleep(*interval);
-            sem_post(&notify_start_transform);
         }
         else
         {
             camera_finished = true;
         }
 
-    } while (v);
+        sem_post(&notify_start_transform);
 
-    sem_post(&notify_start_transform);
+    } while (v);
     cout << "Camera thread ends" << endl;
 }
 
@@ -179,8 +178,8 @@ void *transformer(void *arg)
     {  
         
         sem_wait(&notify_start_transform);
-        sem_wait(&notify_finish_estimate);
 
+        sem_wait(&notify_finish_estimate);
 
         double *data = cache.front();
         if(data) {
@@ -193,26 +192,32 @@ void *transformer(void *arg)
 
             if(camera_finished)
                 sem_post(&notify_start_transform);
+
         }
-        
     }
 }
 
 void *estimator(void *arg)
 {
+    bool flag = false;
     while (!camera_finished || processed_frames < produced_frames)
     {
-        
+        if(!flag && camera_finished) {
+            sem_post(&notify_finish_estimate);
+            flag = true;  
+            continue;
+        }
+
         sem_wait(&notify_start_estimate);
 
         pthread_mutex_lock(&recorder_mtx);
         double mse = temp_recorder.cal_MSE();
         cout << "mse = " << mse << endl;
         processed_frames++;
+        cache.pop();
         pthread_mutex_unlock(&recorder_mtx);
 
-        cache.pop();
-
+        
         sem_post(&notify_finish_estimate);
     }
 }
