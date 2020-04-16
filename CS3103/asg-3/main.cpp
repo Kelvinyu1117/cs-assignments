@@ -202,21 +202,14 @@ void *estimator(void *arg)
     bool flag = false;
     while (!camera_finished || processed_frames < produced_frames)
     {
-        if(!flag && camera_finished) {
-            sem_post(&notify_finish_estimate);
-            flag = true;  
-            continue;
-        }
-
         sem_wait(&notify_start_estimate);
 
         pthread_mutex_lock(&recorder_mtx);
         double mse = temp_recorder.cal_MSE();
         cout << "mse = " << mse << endl;
         processed_frames++;
-        cache.pop();
         pthread_mutex_unlock(&recorder_mtx);
-
+        cache.pop();
         
         sem_post(&notify_finish_estimate);
     }
